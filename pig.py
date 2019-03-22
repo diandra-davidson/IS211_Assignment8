@@ -5,6 +5,16 @@
 
 import sys
 import random
+import argparse
+
+
+PARSER = argparse.ArgumentParser()
+PARSER.add_argument('--player1', help='Choose player type of player one.'
+                                      ' [Human | Computer]')
+PARSER.add_argument('--player2', help='Choose player type of player two.'
+                                      ' [Human | Computer]')
+PARSER.add_argument('--timed', help='How long the game will run in seconds.')
+ARGS = PARSER.parse_args()
 
 
 class Player(object):
@@ -99,7 +109,7 @@ class PlayerFactory(object):
     Also doubles as a proxy pattern for timed games."""
 
 
-class GameProxy(Game):
+class TimedGameProxy(Game):
     """Proxy class - Will check if time in game is up, then determine which
     player has the highest score to declare the winner."""
 

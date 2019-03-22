@@ -68,7 +68,7 @@ class gameTests(unittest.TestCase):
 
     def testTimedGame(self):
         """Testing timed games"""
-        game_proxy = pig.GameProxy()
+        game_proxy = pig.TimedGameProxy()
         computer_one = pig.ComputerPlayer()
         computer_two = pig.ComputerPlayer()
         time_in_seconds = 60
