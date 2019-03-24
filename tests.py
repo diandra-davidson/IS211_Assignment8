@@ -24,14 +24,15 @@ class gameTests(unittest.TestCase):
             piggame.status(plyr_one_score, plyr_two_score)
         self.assertEqual(cm.exception.code, 1, "Game did not exit")
 
-
+#
     def testTurnEndsAtOne(self):
         """Player turn ends at dice roll of one"""
+        playgame = pig.Game()
         player = pig.Player()
-        result = pig.processTurn(player, 'r')
         while True:
-            if result == (1, True):
-                self.assertEqual(result, (1, True), "Turn did not end at 1")
+            result = playgame.rollDice(player, 'r')
+            if result == 1:
+                self.assertEqual(result, 1, "Turn did not end at 1")
                 break
             else:
                 continue
@@ -42,7 +43,7 @@ class gameTests(unittest.TestCase):
         playgame = pig.Game()
         playerone = pig.Player()
         result = playgame.rollDice(playerone, 'h')
-        self.assertEqual(result[0], 'h', "Turn did not end at hold")
+        self.assertEqual(result, 'h', "Turn did not end at hold")
 
 
     def testScoreAddsToTotal(self):
@@ -50,20 +51,37 @@ class gameTests(unittest.TestCase):
         playgame = pig.Game()
         playerone = pig.Player()
         rolldice = playgame.rollDice(playerone, 'r')
-        self.assertEqual(rolldice[0], playerone.score,
-                         "Score did not add to total score")
+        self.assertEqual(rolldice, playerone.score, "Score did not add to"
+                                                    " total score")
 
     def testComputerPlayer(self):
-        """Test Computer Rolls and Holds"""
+        """Test Ccmputer player logic"""
+        play = pig.Game()
         computer = pig.ComputerPlayer()
-        computer_choice = computer.makeChoice()
-        result = pig.processTurn(computer, computer_choice)
-        if computer.score < 25:
-            self.assertEqual(('h', True), result, "Computer did not hold when"
-                                                  " score is less than 25")
-        elif computer.score > 25:
-            self.assertEqual(True, result, "Computer did not roll when score"
-                                           "is above 25")
+        rolldice = play.rollDice(computer, 'r')
+        computer_choice = computer.makeChoice(rolldice)
+
+        while True:
+            if rolldice == 1:
+                self.assertEqual((1, True),
+                                 (rolldice, computer_choice),
+                                 "Turn did not end at one")
+                break
+            elif 100 - computer.score >= 25 and computer.turntotal < 25:
+                self.assertEqual(('r', False), computer_choice,
+                                 "Computer did not roll when turn total is less"
+                                 " than 25")
+                break
+
+            elif 100 - computer.score < 25:
+                new_hold = 100 - computer.score
+                if computer.turntotal < new_hold:
+                    self.assertEqual(('r', True), computer_choice,
+                                     "Computer did not roll when score"
+                                     " is less than 25 away from winning")
+                    break
+            else:
+                continue
 
 
     def testTimedGame(self):
@@ -80,9 +98,6 @@ class gameTests(unittest.TestCase):
         elif computer_two.score > computer_one.score:
             self.assertEqual("Computer Two", timer, "Computer Two did not win "
                                                     "with higher score")
-
-
-
 
 
 if __name__ == '__main__':

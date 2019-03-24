@@ -8,13 +8,13 @@ import random
 import argparse
 
 
-PARSER = argparse.ArgumentParser()
-PARSER.add_argument('--player1', help='Choose player type of player one.'
-                                      ' [Human | Computer]')
-PARSER.add_argument('--player2', help='Choose player type of player two.'
-                                      ' [Human | Computer]')
-PARSER.add_argument('--timed', help='How long the game will run in seconds.')
-ARGS = PARSER.parse_args()
+#PARSER = argparse.ArgumentParser()
+#PARSER.add_argument('--player1', help='Choose player type of player one.'
+#                                      ' [Human | Computer]')
+#PARSER.add_argument('--player2', help='Choose player type of player two.'
+#                                      ' [Human | Computer]')
+#PARSER.add_argument('--timed', help='How long the game will run in seconds.')
+#ARGS = PARSER.parse_args()
 
 
 class Player(object):
@@ -24,22 +24,18 @@ class Player(object):
         self.score = score
 
 
-    def playerChoice(self):
+    def playerChoice(self, choice):
         """Roll or hold"""
-        playerdecision = raw_input("Do you want to roll or hold? [r|h] ")
+#        playerdecision = raw_input("Do you want to roll or hold? [r|h] ")
+        self.choice = choice
 
-        while True:
-            if playerdecision is 'r':
-                roll = playerdecision
-                return roll
-                break
-            elif playerdecision is 'h':
-                hold = playerdecision
-                return hold
-                break
-            else:
-                print "Invalid choice."
-                break
+        if self.choice is 'h':
+            turn_ends = True
+        elif self.choice is 'r':
+            turn_ends = False
+        else:
+            return "Invalid Choice"
+        return choice, turn_ends
 
 
     def totalScore(self, points=0):
@@ -72,24 +68,21 @@ class Game(object):
         roll = 'r'
         hold = 'h'
 
-        if choice is None:
-            playerchoice = player.playerChoice()
-        else:
-            playerchoice = choice
-
-        if playerchoice is roll:
+        if choice is roll:
             diceroll = random.choice(dice)
             player.totalScore(diceroll)
-            result = "You rolled a {}. Your turn now ends. Your total" \
-                     " score is {}.\n".format(diceroll, player.score)
-            print result
-            return diceroll, player.score
+            print "You rolled a {}. Your total score is {}." \
+                  "\n".format(diceroll, player.score)
 
-        elif playerchoice is hold:
-            result = "You decided to hold. Your turn now ends. Your total" \
-                     " score is {}.\n".format(player.score)
-            print result
-            return playerchoice, player.score
+            if diceroll == 1:
+                print "You rolled a {}. Your turn now ends. Your total score" \
+                      " is {}.\n".format(diceroll, player.score)
+            return diceroll
+
+        elif choice is hold:
+            print "You decided to hold. Your turn now ends. Your total " \
+                  "score is {}.\n".format(player.score)
+            return choice
 
 
 class HumanPlayer(Player):
@@ -99,9 +92,27 @@ class HumanPlayer(Player):
 class ComputerPlayer(Player):
     """Computer player derived from Player()"""
 
-    def makeChoice(self):
+    def __init__(self, score=0, turntotal=0):
+        Player.__init__(self, score)
+        self.turntotal = turntotal
+
+    def makeChoice(self, dice):
         """Computer makes a choice using it's own logic."""
-        return
+        self.turntotal += dice
+        computer_score = self.score
+
+        if dice == 1:
+            turn_ends = True
+            return turn_ends
+        elif 100 - computer_score >= 25:
+            if self.turntotal < 25:
+                choice = 'r'
+                turn_ends = False
+
+            elif self.turntotal >= 25:
+                choice = 'h'
+                turn_ends = True
+            return choice, turn_ends
 
 
 class PlayerFactory(object):
@@ -119,30 +130,6 @@ class TimedGameProxy(Game):
         return
 
 
-def processTurn(player, choice=None):
-    """Process the turn"""
-    playgame = Game()
-
-    if choice is None:
-        plyr_choice = player.playerChoice()
-    else:
-        plyr_choice = choice
-
-    plyr_result = playgame.rollDice(player, plyr_choice)
-
-    if plyr_choice is 'h':
-        turn_ends = True
-        return plyr_choice, turn_ends
-
-    if plyr_result[0] != 1:
-        turn_ends = False
-        return turn_ends
-
-    if plyr_result[0] == 1:
-        turn_ends = True
-        return plyr_result[0], turn_ends
-
-
 def playGame():
     """Run the game"""
     playgame = Game()
@@ -154,21 +141,19 @@ def playGame():
     while True:
         while playgame.status(playerone.score, playertwo.score) == False:
             print "\n" + start_plyr_one
-            plyr_one_turn = processTurn(playerone)
+            choice = raw_input("Do you want to roll or hold? [r|h] ")
+            plyr_one_turn = playerone.playerChoice(choice)
 
-            if plyr_one_turn == False:
+            if plyr_one_turn[1] == False:
                 if playgame.status(playerone.score, playertwo.score) == True:
                     print playgame.status(playerone.score, playertwo.score)
                     break
                 else:
-                    continue
-            elif plyr_one_turn == (1, True):
-                if playgame.status(playerone.score, playertwo.score) == True:
-                    print playgame.status(playerone.score, playertwo.score)
-                    break
-                else:
-                    print "Since you rolled a 1, your turn will now end."
-                    break
+                    roll = playgame.rollDice(playerone, plyr_one_turn[0])
+                    if roll == (1, True):
+                        break
+                    else:
+                        continue
             elif plyr_one_turn == ('h', True):
                 if playgame.status(playerone.score, playertwo.score) == True:
                     print playgame.status(playerone.score, playertwo.score)
@@ -178,21 +163,19 @@ def playGame():
 
         while playgame.status(playerone.score, playertwo.score) == False:
             print "\n" + start_plyr_two
-            plyr_two_turn = processTurn(playertwo)
+            choice = raw_input("Do you want to roll or hold? [r|h] ")
+            plyr_two_turn = playerone.playerChoice(choice)
 
-            if plyr_two_turn == False:
+            if plyr_two_turn[1] == False:
                 if playgame.status(playerone.score, playertwo.score) == True:
                     print playgame.status(playerone.score, playertwo.score)
                     break
                 else:
-                    continue
-            elif plyr_two_turn == (1, True):
-                if playgame.status(playerone.score, playertwo.score) == True:
-                    print playgame.status(playerone.score, playertwo.score)
-                    break
-                else:
-                    print "Since you rolled a 1, your turn will now end."
-                    break
+                    roll = playgame.rollDice(playertwo, plyr_two_turn[0])
+                    if roll == (1, True):
+                        break
+                    else:
+                        continue
             elif plyr_two_turn == ('h', True):
                 if playgame.status(playerone.score, playertwo.score) == True:
                     print playgame.status(playerone.score, playertwo.score)
