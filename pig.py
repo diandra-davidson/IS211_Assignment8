@@ -169,8 +169,9 @@ def playGame(p_one, p_two):
     start_plyr_two = "{} 's turn: \n".format(p_two_name)
 
     while True:
-        ### Reset counter at beginning of loop ###
-        counter = 0
+        ### Reset counters at beginning of loop ###
+        pone_counter = 0
+        ptwo_counter = 0
         while playgame.status(playerone.score, playertwo.score) == False:
             print "\n" + start_plyr_one
             if p_one == 'human':
@@ -200,18 +201,18 @@ def playGame(p_one, p_two):
             elif p_one == 'computer':
                 ### Reset turntotal at beginning of computer turn ###
                 playerone.turntotal = 0
-                choice = playerone.makeChoice(counter)
+                choice = playerone.makeChoice(pone_counter)
 
                 if choice == ('r', False):
                     print "{} rolls!".format(p_one_name)
                     plyr_one_turn = playgame.rollDice(playerone, choice[0])
-                    counter += plyr_one_turn
+                    pone_counter += plyr_one_turn
                     if playgame.status(playerone.score, playertwo.score) == True:
                         print playgame.status(playerone.score, playertwo.score)
                         break
                     elif plyr_one_turn == 1:
+                        playerone.turntotal += pone_counter
                         time.sleep(3)
-                        playerone.turntotal += counter
                         break
                     else:
                         time.sleep(2)
@@ -223,7 +224,6 @@ def playGame(p_one, p_two):
                     else:
                         print "{} decided to hold. Turn ends.".format(p_one_name)
                         playgame.rollDice(playerone, choice[0])
-                        playerone.turntotal = 0
                         time.sleep(2)
                         break
 
@@ -251,16 +251,20 @@ def playGame(p_one, p_two):
                     else:
                         break
             elif p_two == 'computer':
-                choice = playertwo.makeChoice()
+                ### Reset turntotal at beginning of computer turn ###
+                playertwo.turntotal = 0
+                choice = playertwo.makeChoice(ptwo_counter)
 
                 if choice == ('r', False):
                     print "{} rolls!".format(p_two_name)
                     plyr_two_turn = playgame.rollDice(playertwo, choice[0])
+                    ptwo_counter += plyr_two_turn
                     if playgame.status(playerone.score,
                                        playertwo.score) == True:
                         print playgame.status(playerone.score, playertwo.score)
                         break
                     elif plyr_two_turn == 1:
+                        playertwo.turntotal += ptwo_counter
                         time.sleep(3)
                         break
                     else:
