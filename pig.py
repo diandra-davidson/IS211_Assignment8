@@ -104,6 +104,7 @@ class ComputerPlayer(Player):
         """Computer makes a choice using it's own logic."""
         self.turntotal += dice
         computer_score = self.score
+        print self.turntotal
 
         if dice == 1:
             turn_ends = True
@@ -120,9 +121,12 @@ class ComputerPlayer(Player):
 
         elif 100 - computer_score < 25:
             new_hold = 100 - computer_score
-            if self.turntotal < new_hold:
+            if self.turntotal <= new_hold:
                 choice = 'r'
                 turn_ends = False
+            else:
+                choice = 'h'
+                turn_ends = True
 
         return choice, turn_ends
 
@@ -165,6 +169,9 @@ def playGame(p_one, p_two):
     start_plyr_two = "{} 's turn: \n".format(p_two_name)
 
     while True:
+        ### Reset counters at beginning of loop ###
+        pone_counter = 0
+        ptwo_counter = 0
         while playgame.status(playerone.score, playertwo.score) == False:
             print "\n" + start_plyr_one
             if p_one == 'human':
@@ -192,15 +199,19 @@ def playGame(p_one, p_two):
                         time.sleep(1)
                         break
             elif p_one == 'computer':
-                choice = playerone.makeChoice()
+                ### Reset turntotal at beginning of computer turn ###
+                playerone.turntotal = 0
+                choice = playerone.makeChoice(pone_counter)
 
                 if choice == ('r', False):
                     print "{} rolls!".format(p_one_name)
                     plyr_one_turn = playgame.rollDice(playerone, choice[0])
+                    pone_counter += plyr_one_turn
                     if playgame.status(playerone.score, playertwo.score) == True:
                         print playgame.status(playerone.score, playertwo.score)
                         break
                     elif plyr_one_turn == 1:
+                        playerone.turntotal += pone_counter
                         time.sleep(3)
                         break
                     else:
@@ -240,16 +251,20 @@ def playGame(p_one, p_two):
                     else:
                         break
             elif p_two == 'computer':
-                choice = playertwo.makeChoice()
+                ### Reset turntotal at beginning of computer turn ###
+                playertwo.turntotal = 0
+                choice = playertwo.makeChoice(ptwo_counter)
 
                 if choice == ('r', False):
                     print "{} rolls!".format(p_two_name)
                     plyr_two_turn = playgame.rollDice(playertwo, choice[0])
+                    ptwo_counter += plyr_two_turn
                     if playgame.status(playerone.score,
                                        playertwo.score) == True:
                         print playgame.status(playerone.score, playertwo.score)
                         break
                     elif plyr_two_turn == 1:
+                        playertwo.turntotal += ptwo_counter
                         time.sleep(3)
                         break
                     else:
